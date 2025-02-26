@@ -1,0 +1,20 @@
+#define BOUTON_VERT 2
+#define BOUTON_ROUGE 3
+ 
+void setup() {
+  pinMode(BOUTON_VERT, INPUT_PULLUP);
+  pinMode(BOUTON_ROUGE, INPUT_PULLUP);
+  Serial.begin(9600);
+}
+ 
+void loop() {
+  if (digitalRead(BOUTON_VERT) == LOW) {
+    Serial.println("Bouton vert appuyé !");
+    delay(500);
+  }
+  if (digitalRead(BOUTON_ROUGE) == LOW) {
+    Serial.println("Bouton rouge appuyé !");
+    delay(500);
+  }
+}
+ 
