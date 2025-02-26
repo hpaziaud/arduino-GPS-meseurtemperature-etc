@@ -1,0 +1,28 @@
+#include <ChainableLED.h>
+ 
+#define NUM_LEDS 1 // Nombre de LEDs (1 dans ce cas)
+ 
+ChainableLED leds(3, 4, NUM_LEDS); // Broches 3 (data) et 4 (clock)
+ 
+void setup() {
+  // Initialisation de la communication série
+  Serial.begin(9600);
+  Serial.println("Test de la LED RGB...");
+}
+ 
+void loop() {
+  // Test de la couleur rouge
+  leds.setColorRGB(0, 255, 0, 0); // Rouge
+  Serial.println("Couleur : Rouge");
+  delay(1000);
+ 
+  // Test de la couleur verte
+  leds.setColorRGB(0, 0, 255, 0); // Vert
+  Serial.println("Couleur : Vert");
+  delay(1000);
+ 
+  // Test de la couleur bleue
+  leds.setColorRGB(0, 0, 0, 255); // Bleu
+  Serial.println("Couleur : Bleu");
+  delay(1000);
+}
