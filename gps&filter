@@ -1,0 +1,24 @@
+#include <SoftwareSerial.h>
+ 
+SoftwareSerial gpsSerial(7, 8); // TX, RX
+String data = ""; // On conserve la trame en dehors de loop()
+ 
+void setup() {
+  Serial.begin(9600);
+  gpsSerial.begin(9600);
+}
+ 
+void loop() {
+  while (gpsSerial.available()) {
+    char c = gpsSerial.read();
+    data += c;
+ 
+    // Vérifier si on a une ligne complète
+    if (c == '\n') { 
+      if (data.indexOf("$GPRMC") != -1) { // Vérifier si la ligne contient $GPRMC
+        Serial.println(data);
+      }
+      data = ""; // Réinitialiser pour la prochaine trame
+    }
+  }
+}
