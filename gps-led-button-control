@@ -1,0 +1,93 @@
+#include <SoftwareSerial.h>
+#include <ChainableLED.h>
+ 
+#define BOUTON_VERT 2
+#define BOUTON_ROUGE 3
+#define NUM_LEDS 1 // Nombre de LEDs (1 dans ce cas)
+ 
+SoftwareSerial gpsSerial(7, 8); // TX, RX
+ChainableLED leds(3, 4, NUM_LEDS); // Broches 3 (data) et 4 (clock)
+ 
+String data = ""; // On conserve la trame en dehors de loop()
+bool gpsDataRead = false; // Pour vérifier si la trame GPS a déjà été lue
+bool arduinoPaused = false; // Pour vérifier si l'Arduino est en pause
+ 
+void setup() {
+  pinMode(BOUTON_VERT, INPUT_PULLUP);
+  pinMode(BOUTON_ROUGE, INPUT_PULLUP);
+  Serial.begin(9600);
+  gpsSerial.begin(9600);
+ 
+  // Initialisation de la LED en bleu (Arduino allumé)
+  leds.setColorRGB(0, 0, 0, 255); // Bleu
+  Serial.println("Arduino allumé. LED : Bleu");
+}
+ 
+void loop() {
+  // Gestion du bouton rouge pour réinitialiser le programme
+  if (digitalRead(BOUTON_ROUGE) == LOW) {
+    Serial.println("Réinitialisation du programme...");
+    delay(500); // Anti-rebond
+    resetProgram();
+  }
+ 
+  // Gestion du bouton vert pour arrêter/redémarrer l'Arduino
+  if (digitalRead(BOUTON_VERT) == LOW) {
+    Serial.println("Bouton vert appuyé !");
+    delay(500); // Anti-rebond
+    toggleArduinoState();
+  }
+ 
+  // Si l'Arduino est en pause, on ne fait rien
+  if (arduinoPaused) {
+    return;
+  }
+ 
+  // Lecture du GPS si la trame n'a pas encore été lue
+  if (!gpsDataRead) {
+    while (gpsSerial.available()) {
+      char c = gpsSerial.read();
+      data += c;
+ 
+      // Vérifier si on a une ligne complète
+      if (c == '\n') {
+        if (data.indexOf("$GPRMC") != -1) { // Vérifier si la ligne contient $GPRMC
+          Serial.println(data);
+          gpsDataRead = true; // Marquer que la trame a été lue
+        }
+        data = ""; // Réinitialiser pour la prochaine trame
+      }
+    }
+  }
+ 
+  // Vérification d'un problème (exemple : pas de données GPS après un certain temps)
+  if (!gpsDataRead && millis() > 10000) { // Si aucune donnée GPS après 10 secondes
+    leds.setColorRGB(0, 0, 255, 0); // Vert (problème)
+    Serial.println("Problème détecté : Pas de données GPS. LED : Vert");
+  }
+}
+ 
+void resetProgram() {
+  // Réinitialiser toutes les variables et états
+  gpsDataRead = false;
+  data = "";
+  arduinoPaused = false;
+ 
+  // Remettre la LED en bleu (Arduino allumé)
+  leds.setColorRGB(0, 0, 0, 255); // Bleu
+  Serial.println("Programme réinitialisé. LED : Bleu");
+}
+ 
+void toggleArduinoState() {
+  if (arduinoPaused) {
+    // Redémarrer l'Arduino
+    arduinoPaused = false;
+    leds.setColorRGB(0, 0, 0, 255); // Bleu (Arduino allumé)
+    Serial.println("Arduino redémarré. LED : Bleu");
+  } else {
+    // Arrêter l'Arduino
+    arduinoPaused = true;
+    leds.setColorRGB(0, 255, 0, 0); // Rouge (Arduino en pause)
+    Serial.println("Arduino en pause. LED : Rouge");
+  }
+}
